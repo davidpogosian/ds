@@ -14,6 +14,7 @@ func NewEmpty[T comparable]() *Stack[T] {
 	return &Stack[T]{}
 }
 
+// also shallow
 func NewFromSlice[T comparable](slice []T) *Stack[T] {
 	copiedSlice := make([]T, len(slice))
 	copy(copiedSlice, slice)
@@ -77,6 +78,7 @@ func (stack *Stack[T]) Contains(item T) int {
 	return -1
 }
 
+// shallow
 func (stack *Stack[T]) ToSlice() []T {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
@@ -85,12 +87,13 @@ func (stack *Stack[T]) ToSlice() []T {
 	return copiedSlice
 }
 
+// Shallow copy, should I implement deep copy?
 func (stack *Stack[T]) Copy() *Stack[T] {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
 	copiedSlice := make([]T, len(stack.items))
 	copy(copiedSlice, stack.items)
-	return NewFromSlice(copiedSlice)
+	return &Stack[T]{items: copiedSlice}
 }
 
 func (stack *Stack[T]) String() string {
