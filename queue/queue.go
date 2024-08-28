@@ -12,17 +12,24 @@ type Queue[T comparable] struct {
 	mutex sync.Mutex
 }
 
+// Creates a new empty Queue.
 func NewEmpty[T comparable]() *Queue[T] {
 	return &Queue[T]{}
 }
 
-// shallow copy
+// Creates a new Queue from a slice.
+// The slice is copied.
 func NewFromSlice[T comparable](slice []T) *Queue[T] {
 	copiedSlice := make([]T, len(slice))
 	copy(copiedSlice, slice)
-	return &Queue[T]{items: copiedSlice}
+	return &Queue[T]{
+		items: copiedSlice,
+		front: 0,
+		rear: len(copiedSlice),
+	}
 }
 
+// Adds an item to the rear of the Queue.
 func (queue *Queue[T]) Enqueue(newItem T) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -30,12 +37,15 @@ func (queue *Queue[T]) Enqueue(newItem T) {
 	queue.rear++
 }
 
+// Returns a bool indicating whether or not the Queue is empty.
 func (queue *Queue[T]) IsEmpty() bool {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 	return queue.front == queue.rear
 }
 
+// Removes and returns the item at the front of the Queue.
+// Returns an error if the Queue is empty.
 func (queue *Queue[T]) Dequeue() (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -48,6 +58,8 @@ func (queue *Queue[T]) Dequeue() (T, error) {
 	return first, nil
 }
 
+// Returns the item at the front of the Queue.
+// Returns an error if the Queue is empty.
 func (queue *Queue[T]) Peek() (T, error) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -59,12 +71,14 @@ func (queue *Queue[T]) Peek() (T, error) {
 	return first, nil
 }
 
+// Returns the number of items in the Queue.
 func (queue *Queue[T]) Size() int {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 	return queue.rear - queue.front
 }
 
+// Removes all items from the Queue.
 func (queue *Queue[T]) Clear() {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -73,6 +87,8 @@ func (queue *Queue[T]) Clear() {
 	queue.rear = 0
 }
 
+// Returns a nonnegative int indicating the position of the item in the Queue.
+// Returns -1 if the item is not in the Queue.
 func (queue *Queue[T]) Contains(item T) int {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -84,7 +100,7 @@ func (queue *Queue[T]) Contains(item T) int {
 	return -1
 }
 
-// shallow copy
+// Returns a copy of the Queue.
 func (queue *Queue[T]) Copy() *Queue[T] {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
@@ -97,15 +113,16 @@ func (queue *Queue[T]) Copy() *Queue[T] {
 	}
 }
 
-// shallow
+// Returns the Queue as a slice.
 func (queue *Queue[T]) ToSlice() []T {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
-	copiedSlice := make([]T, queue.front - queue.rear)
+	copiedSlice := make([]T, queue.rear - queue.front)
 	copy(copiedSlice, queue.items[queue.front:queue.rear])
 	return copiedSlice
 }
 
+// Returns the string representation of the Queue.
 func (queue *Queue[T]) String() string {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()

@@ -15,7 +15,8 @@ func NewEmpty[T comparable]() *Stack[T] {
 	return &Stack[T]{}
 }
 
-// Creates a new Stack from a slice. The slice is copied.
+// Creates a new Stack from a slice.
+// The slice is copied.
 func NewFromSlice[T comparable](slice []T) *Stack[T] {
 	copiedSlice := make([]T, len(slice))
 	copy(copiedSlice, slice)
@@ -76,8 +77,8 @@ func (stack *Stack[T]) Clear() {
 	stack.items = []T{}
 }
 
-// Returns nonnegative int indicating poistion of item in the Stack.
-// Returns -1 if the item could not be found.
+// Returns nonnegative int indicating the poistion of the item in the Stack.
+// Returns -1 if the item is not in the Stack.
 func (stack *Stack[T]) Contains(item T) int {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
@@ -99,7 +100,6 @@ func (stack *Stack[T]) ToSlice() []T {
 }
 
 // Returns a copy of the Stack.
-// The Stack's underlying slice is copied, then returned.
 func (stack *Stack[T]) Copy() *Stack[T] {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
@@ -108,7 +108,7 @@ func (stack *Stack[T]) Copy() *Stack[T] {
 	return &Stack[T]{items: copiedSlice}
 }
 
-// Returns a string representation of the Stack.
+// Returns the string representation of the Stack.
 func (stack *Stack[T]) String() string {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
