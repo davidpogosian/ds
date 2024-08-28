@@ -2,6 +2,7 @@ package stack
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -59,43 +60,96 @@ func TestNewFromSlice(t *testing.T) {
 }
 
 func TestPop(t *testing.T) {
-	t.Run("EmptyStack", func(t *testing.T) {
-		s := NewEmpty[int]()
-		_, err := s.Pop()
-		if err == nil {
-			t.Fatal("Popped from empty stack")
-		}
+	t.Run("Sequential", func(t *testing.T) {
+		t.Run("EmptyStack", func(t *testing.T) {
+			s := NewEmpty[int]()
+			_, err := s.Pop()
+			if err == nil {
+				t.Fatal("Popped from empty stack")
+			}
+		})
+
+		t.Run("NonemptyStack", func(t *testing.T) {
+			s := NewEmpty[int]()
+			s.Push(1)
+			top, err := s.Pop()
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert(t, "top", 1, top)
+			assert(t, "s.Size()", 0, s.Size())
+		})
 	})
 
-	t.Run("NonemptyStack", func(t *testing.T) {
+	t.Run("Concurrent", func(t *testing.T) {
 		s := NewEmpty[int]()
-		s.Push(1)
-		top, err := s.Pop()
-		if err != nil {
+		for i := 0; i < 1000; i++ {
+			s.Push(i)
+		}
+		assert(t, "s.Size()", 1000, s.Size())
+		threads := 10
+		operations := 100
+		errorChannel := make(chan error, 1000)
+		var waitGroup sync.WaitGroup
+		for i := 0; i < threads; i++ {
+			waitGroup.Add(1)
+			go func(i int) {
+				defer waitGroup.Done()
+				for j := 0; j < operations; j++ {
+					_, err := s.Pop()
+					if err != nil {
+						errorChannel <- err
+					}
+				}
+			}(i)
+		}
+		waitGroup.Wait()
+		close(errorChannel)
+		for err := range errorChannel {
 			t.Fatal(err)
 		}
-		assert(t, "top", 1, top)
-		assert(t, "s.Size()", 0, s.Size())
+ 		assert(t, "s.Size()", 0, s.Size())
 	})
 }
 
 func TestPush(t *testing.T) {
-	t.Run("EmptyStack", func(t *testing.T) {
-		s := NewEmpty[int]()
-		s.Push(1)
-		err := compareSlices([]int{1}, s.ToSlice())
-		if err != nil {
-			t.Fatal(err)
-		}
+	t.Run("Sequential", func(t *testing.T) {
+		t.Run("EmptyStack", func(t *testing.T) {
+			s := NewEmpty[int]()
+			s.Push(1)
+			err := compareSlices([]int{1}, s.ToSlice())
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+
+		t.Run("NonemptyStack", func(t *testing.T) {
+			s := NewFromSlice([]int{1, 2})
+			s.Push(3)
+			err := compareSlices([]int{1, 2, 3}, s.ToSlice())
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
 	})
 
-	t.Run("NonemptyStack", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2})
-		s.Push(3)
-		err := compareSlices([]int{1, 2, 3}, s.ToSlice())
-		if err != nil {
-			t.Fatal(err)
+	t.Run("Concurrent", func(t *testing.T) {
+		s := NewEmpty[int]()
+		assert(t, "s.Size()", 0, s.Size())
+		threads := 10
+		operations := 100
+		var waitGroup sync.WaitGroup
+		for i := 0; i < threads; i++ {
+			waitGroup.Add(1)
+			go func(i int) {
+				defer waitGroup.Done()
+				for j := 0; j < operations; j++ {
+					s.Push(i)
+				}
+			}(i)
 		}
+		waitGroup.Wait()
+ 		assert(t, "s.Size()", 1000, s.Size())
 	})
 }
 
