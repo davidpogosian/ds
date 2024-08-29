@@ -109,7 +109,9 @@ func (l *List[T]) String() string {
 		s += fmt.Sprintf("%v", cursor.val) + " "
 		cursor = cursor.next
 	}
-	s += fmt.Sprintf("%v", cursor.val)
+	if l.size > 0 {
+		s += fmt.Sprintf("%v", cursor.val)
+	}
 	s += "]"
 	return s
 }

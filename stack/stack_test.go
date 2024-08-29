@@ -7,7 +7,6 @@ import (
 	"github.com/davidpogosian/ds/testutils"
 )
 
-
 func TestNewEmpty(t *testing.T) {
 	s := NewEmpty[int]()
 	testutils.Assert(t, "s.Size()", 0, s.Size())
@@ -195,16 +194,16 @@ func TestClear(t *testing.T) {
 	})
 }
 
-func TestContains(t *testing.T) {
+func TestFind(t *testing.T) {
 	t.Run("Exists", func(t *testing.T) {
 		s := NewFromSlice([]int{1, 2, 3})
-		one := s.Contains(2)
+		one := s.Find(2)
 		testutils.Assert(t, "one", 1, one)
 	})
 
 	t.Run("DoesntExist", func(t *testing.T) {
 		s := NewFromSlice([]int{1, 2, 3})
-		negativeOne := s.Contains(1099)
+		negativeOne := s.Find(1099)
 		testutils.Assert(t, "negativeOne", -1, negativeOne)
 	})
 }

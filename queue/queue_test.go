@@ -152,16 +152,16 @@ func TestClear(t *testing.T) {
 	testutils.Assert(t, "q.Size()", 0, q.Size())
 }
 
-func TestContains(t *testing.T) {
+func TestFind(t *testing.T) {
 	t.Run("Exists", func(t *testing.T) {
 		q := NewFromSlice([]int{1, 2, 3})
-		one := q.Contains(2)
+		one := q.Find(2)
 		testutils.Assert(t, "one", 1, one)
 	})
 
 	t.Run("DoesntExist", func(t *testing.T) {
 		q := NewFromSlice([]int{1, 2, 3})
-		negativeOne := q.Contains(1099)
+		negativeOne := q.Find(1099)
 		testutils.Assert(t, "negativeOne", -1, negativeOne)
 	})
 }

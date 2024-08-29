@@ -79,7 +79,7 @@ func (stack *Stack[T]) Clear() {
 
 // Returns nonnegative int indicating the poistion of the item in the Stack.
 // Returns -1 if the item is not in the Stack.
-func (stack *Stack[T]) Contains(item T) int {
+func (stack *Stack[T]) Find(item T) int {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
 	for i := range stack.items {

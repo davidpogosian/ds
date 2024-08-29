@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -21,4 +22,28 @@ func CompareSlices[T comparable](sliceA []T, sliceB []T) error {
 		}
 	}
 	return nil
+}
+
+func ConcurrentOperations(t *testing.T, threads int, repetitions int, function func() error) {
+	var waitGroup sync.WaitGroup
+	errCh := make(chan error, threads * repetitions)
+	for i := 0; i < threads; i++ {
+		waitGroup.Add(1)
+		go func(errCh chan error) {
+			defer waitGroup.Done()
+			for j := 0; j < repetitions; j++ {
+				err := function()
+				if err != nil {
+					errCh <- err
+				}
+			}
+		}(errCh)
+	}
+	waitGroup.Wait()
+	close(errCh)
+	for err := range errCh {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 }

@@ -110,7 +110,7 @@ func (queue *Queue[T]) Clear() {
 
 // Returns a nonnegative int indicating the position of the item in the Queue.
 // Returns -1 if the item is not in the Queue.
-func (queue *Queue[T]) Contains(item T) int {
+func (queue *Queue[T]) Find(item T) int {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 	traversed := 0
