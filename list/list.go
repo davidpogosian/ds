@@ -263,3 +263,23 @@ func (l *List[T]) ToSlice() []T {
 	}
 	return s
 }
+
+// Reverses the order of the items in the List.
+func (l *List[T]) Reverse() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.size == 0 || l.size == 1 {
+		return
+	} else {
+		cursor := l.front
+		for i := 0; i < l.size; i++ {
+			cursorNext := cursor.next
+			cursor.next = cursor.prev
+			cursor.prev = cursorNext
+			cursor = cursorNext
+		}
+		tempFront := l.front
+		l.front = l.back
+		l.back = tempFront
+	}
+}
