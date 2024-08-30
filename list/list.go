@@ -183,10 +183,12 @@ func (l *List[T]) Find(item T) int {
 	return -1
 }
 
-func (l *List[T]) removeFront() error {
+func (l *List[T]) removeFront() (T, error) {
 	if l.size == 0 {
-		return fmt.Errorf("Cannot remove the front item from an empty List.")
+		var zeroValue T
+		return zeroValue, fmt.Errorf("Cannot remove the front item from an empty List.")
 	}
+	value := l.front.val
 	if l.size == 1 {
 		l.front = nil
 		l.back = nil
@@ -195,21 +197,23 @@ func (l *List[T]) removeFront() error {
 		l.front = l.front.next
 	}
 	l.size--
-	return nil
+	return value, nil
 }
 
 // Removes the item at the front of the List.
 // If the List is empty, an error is returned.
-func (l *List[T]) RemoveFront() error {
+func (l *List[T]) RemoveFront() (T, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.removeFront()
 }
 
-func (l *List[T]) removeBack() error {
+func (l *List[T]) removeBack() (T, error) {
 	if l.size == 0 {
-		return fmt.Errorf("Cannot remove the back item from an empty List.")
+		var zeroValue T
+		return zeroValue, fmt.Errorf("Cannot remove the back item from an empty List.")
 	}
+	value := l.back.val
 	if l.size == 1 {
 		l.front = nil
 		l.back = nil
@@ -218,12 +222,12 @@ func (l *List[T]) removeBack() error {
 		l.back = l.back.prev
 	}
 	l.size--
-	return nil
+	return value, nil
 }
 
 // Removes the item at the back of the List.
 // If the List is empty, an error is returned.
-func (l *List[T]) RemoveBack() error {
+func (l *List[T]) RemoveBack() (T, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.removeBack()
@@ -231,12 +235,14 @@ func (l *List[T]) RemoveBack() error {
 
 // Removes the item at given index from the List.
 // If the index is invalid, an error is returned.
-func (l *List[T]) RemovePosition(index int) error {
+func (l *List[T]) RemovePosition(index int) (T, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if index < 0 || index >= l.size {
-		return fmt.Errorf("Cannot remove item at index %d in a List of size %d.", index, l.size)
+		var zeroValue T
+		return zeroValue, fmt.Errorf("Cannot remove item at index %d in a List of size %d.", index, l.size)
 	}
+	var value T
 	if index == 0 {
 		return l.removeFront()
 	} else if index == l.size - 1 {
@@ -246,11 +252,12 @@ func (l *List[T]) RemovePosition(index int) error {
 		for i := 0; i < index; i++ {
 			cursor = cursor.next
 		}
+		value = cursor.val
 		cursor.prev.next = cursor.next
 		cursor.next.prev = cursor.prev
 		l.size--
 	}
-	return nil
+	return value, nil
 }
 
 // Returns the List as a slice.

@@ -156,11 +156,23 @@ func TestReverse(t *testing.T) {
 func TestRemoveFront(t *testing.T) {
 	t.Run("Sequential", func(t *testing.T) {
 		l := NewFromSlice([]int{1, 2, 3})
-		l.RemoveFront()
+		one, err := l.RemoveFront()
+		testutils.Assert(t, "one", 1, one)
+		if err != nil {
+			t.Fatal(err)
+		}
 		testutils.Assert(t, "l.String()", "[2 3]", l.String())
-		l.RemoveFront()
+		two, err := l.RemoveFront()
+		testutils.Assert(t, "two", 2, two)
+		if err != nil {
+			t.Fatal(err)
+		}
 		testutils.Assert(t, "l.String()", "[3]", l.String())
-		l.RemoveFront()
+		three, err := l.RemoveFront()
+		testutils.Assert(t, "three", 3, three)
+		if err != nil {
+			t.Fatal(err)
+		}
 		testutils.Assert(t, "l.String()", "[]", l.String())
 	})
 
@@ -171,7 +183,7 @@ func TestRemoveFront(t *testing.T) {
 		}
 		testutils.Assert(t, "l.Size()", 1000, l.Size())
 		testutils.ConcurrentOperations(t, 10, 100, func() error {
-			err := l.RemoveFront()
+			_, err := l.RemoveFront()
 			return err
 		})
 		testutils.Assert(t, "l.Size()", 0, l.Size())
@@ -181,11 +193,23 @@ func TestRemoveFront(t *testing.T) {
 func TestRemoveBack(t *testing.T) {
 	t.Run("Sequential", func(t *testing.T) {
 		l := NewFromSlice([]int{1, 2, 3})
-		l.RemoveBack()
+		three, err := l.RemoveBack()
+		testutils.Assert(t, "three", 3, three)
+		if err != nil {
+			t.Fatal(err)
+		}
 		testutils.Assert(t, "l.String()", "[1 2]", l.String())
-		l.RemoveBack()
+		two, err := l.RemoveBack()
+		testutils.Assert(t, "two", 2, two)
+		if err != nil {
+			t.Fatal(err)
+		}
 		testutils.Assert(t, "l.String()", "[1]", l.String())
-		l.RemoveBack()
+		one, err := l.RemoveBack()
+		testutils.Assert(t, "one", 1, one)
+		if err != nil {
+			t.Fatal(err)
+		}
 		testutils.Assert(t, "l.String()", "[]", l.String())
 	})
 
@@ -196,7 +220,7 @@ func TestRemoveBack(t *testing.T) {
 		}
 		testutils.Assert(t, "l.Size()", 1000, l.Size())
 		testutils.ConcurrentOperations(t, 10, 100, func() error {
-			err := l.RemoveBack()
+			_, err := l.RemoveBack()
 			return err
 		})
 		testutils.Assert(t, "l.Size()", 0, l.Size())
@@ -207,7 +231,7 @@ func TestRemovePosition(t *testing.T) {
 	t.Run("Sequential", func(t *testing.T) {
 		t.Run("Empty", func(t *testing.T) {
 			l := NewEmpty[int]()
-			err := l.RemovePosition(0)
+			_, err := l.RemovePosition(0)
 			if err == nil {
 				t.Fatal("Removed from an empty List.")
 			}
@@ -216,7 +240,8 @@ func TestRemovePosition(t *testing.T) {
 		t.Run("NotEmpty", func(t *testing.T) {
 			t.Run("Front", func(t *testing.T) {
 				l := NewFromSlice([]int{1, 2, 3})
-				err := l.RemovePosition(0)
+				one, err := l.RemovePosition(0)
+				testutils.Assert(t, "one", 1, one)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -225,7 +250,8 @@ func TestRemovePosition(t *testing.T) {
 
 			t.Run("Index1", func(t *testing.T) {
 				l := NewFromSlice([]int{1, 2, 3})
-				err := l.RemovePosition(1)
+				two, err := l.RemovePosition(1)
+				testutils.Assert(t, "two", 2, two)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -234,7 +260,8 @@ func TestRemovePosition(t *testing.T) {
 
 			t.Run("Back", func(t *testing.T) {
 				l := NewFromSlice([]int{1, 2, 3})
-				err := l.RemovePosition(2)
+				three, err := l.RemovePosition(2)
+				testutils.Assert(t, "three", 3, three)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -243,7 +270,7 @@ func TestRemovePosition(t *testing.T) {
 
 			t.Run("Index3", func(t *testing.T) {
 				l := NewFromSlice([]int{1, 2, 3})
-				err := l.RemovePosition(3)
+				_, err := l.RemovePosition(3)
 				if err == nil {
 					t.Fatal("Removed from a List of size 3 at position 3.")
 				}
@@ -258,9 +285,110 @@ func TestRemovePosition(t *testing.T) {
 		}
 		testutils.Assert(t, "l.Size()", 1000, l.Size())
 		testutils.ConcurrentOperations(t, 10, 100, func() error {
-			err := l.RemovePosition(0)
+			_, err := l.RemovePosition(0)
 			return err
 		})
 		testutils.Assert(t, "l.Size()", 0, l.Size())
+	})
+}
+
+func TestSize(t *testing.T) {
+	t.Run("Empty", func(t *testing.T) {
+		l := NewEmpty[int]()
+		testutils.Assert(t, "l.Size()", 0, l.Size())
+	})
+
+	t.Run("Size1", func(t *testing.T) {
+		l := NewFromSlice([]int{2})
+		testutils.Assert(t, "l.Size()", 1, l.Size())
+	})
+
+	t.Run("Size5", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3, 4, 5})
+		testutils.Assert(t, "l.Size()", 5, l.Size())
+	})
+}
+
+func TestIsEmpty(t *testing.T) {
+	t.Run("Empty", func(t *testing.T) {
+		l := NewEmpty[int]()
+		testutils.Assert(t, "l.IsEmpty()", true, l.IsEmpty())
+	})
+
+	t.Run("NotEmpty", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3, 4, 5})
+		testutils.Assert(t, "l.IsEmpty()", false, l.IsEmpty())
+	})
+}
+
+func TestClear(t *testing.T) {
+	l := NewFromSlice([]int{1, 2, 3})
+	l.Clear()
+	testutils.Assert(t, "l.Size()", 0, l.Size())
+}
+
+func TestGet(t *testing.T) {
+	t.Run("ValidIndex", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3})
+		two, err := l.Get(1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		testutils.Assert(t, "two", 2, two)
+	})
+
+	t.Run("InvalidIndex", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3})
+		_, err := l.Get(100)
+		if err == nil {
+			t.Fatal("Got item at index 100 from List of length 3.")
+		}
+	})
+}
+
+func TestCopy(t *testing.T) {
+	l := NewFromSlice([]int{1, 2, 3})
+	copy := l.Copy()
+	l.InsertFront(100)
+	testutils.Assert(t, "copy.Size()", 3, copy.Size())
+}
+
+func TestFind(t *testing.T) {
+	t.Run("Exists", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3})
+		one := l.Find(2)
+		testutils.Assert(t, "one", 1, one)
+	})
+
+	t.Run("NotExists", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3})
+		negativeOne := l.Find(90)
+		testutils.Assert(t, "negativeOne", -1, negativeOne)
+	})
+}
+
+func TestToSlice(t *testing.T) {
+	t.Run("Empty", func(t *testing.T) {
+		l := NewEmpty[int]()
+		slice := l.ToSlice()
+		testutils.Assert(t, "len(slice)", 0, len(slice))
+	})
+
+	t.Run("NotEmpty", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3})
+		slice := l.ToSlice()
+		testutils.Assert(t, "len(slice)", 3, len(slice))
+	})
+}
+
+func TestToString(t *testing.T) {
+	t.Run("Empty", func(t *testing.T) {
+		l := NewEmpty[int]()
+		testutils.Assert(t, "l.String()", "[]", l.String())
+	})
+
+	t.Run("NotEmpty", func(t *testing.T) {
+		l := NewFromSlice([]int{1, 2, 3})
+		testutils.Assert(t, "l.String()", "[1 2 3]", l.String())
 	})
 }
