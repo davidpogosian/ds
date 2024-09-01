@@ -3,24 +3,27 @@ package queue
 import (
 	"fmt"
 	"sync"
+
+	"github.com/davidpogosian/ds/comparators"
 )
 
-type Queue[T comparable] struct {
+type Queue[T any] struct {
 	items []T
 	front int
 	rear int
 	size int
+	comparator comparators.Comparator[T]
 	mutex sync.Mutex
 }
 
 // Creates a new empty Queue.
-func NewEmpty[T comparable]() *Queue[T] {
-	return &Queue[T]{items: make([]T, 4)}
+func NewEmpty[T any](comparator comparators.Comparator[T]) *Queue[T] {
+	return &Queue[T]{items: make([]T, 4), comparator: comparator}
 }
 
 // Creates a new Queue from a slice.
 // The slice is copied.
-func NewFromSlice[T comparable](slice []T) *Queue[T] {
+func NewFromSlice[T any](slice []T, comparator comparators.Comparator[T]) *Queue[T] {
 	copiedSlice := make([]T, len(slice))
 	copy(copiedSlice, slice)
 	return &Queue[T]{
@@ -28,6 +31,7 @@ func NewFromSlice[T comparable](slice []T) *Queue[T] {
 		front: 0,
 		rear: 0,
 		size: len(copiedSlice),
+		comparator: comparator,
 	}
 }
 
@@ -115,7 +119,7 @@ func (queue *Queue[T]) Find(item T) int {
 	defer queue.mutex.Unlock()
 	traversed := 0
 	for i := queue.front; traversed != queue.size; i = (i + 1) % len(queue.items) {
-		if queue.items[i] == item {
+		if queue.comparator(queue.items[i], item) == 0 {
 			return traversed
 		}
 		traversed++
