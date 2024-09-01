@@ -138,6 +138,7 @@ func (queue *Queue[T]) Copy() *Queue[T] {
 		front: queue.front,
 		rear: queue.rear,
 		size: queue.size,
+		comparator: queue.comparator,
 	}
 }
 

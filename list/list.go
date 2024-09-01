@@ -3,29 +3,32 @@ package list
 import (
 	"fmt"
 	"sync"
+
+	"github.com/davidpogosian/ds/comparators"
 )
 
-type node[T comparable] struct {
+type node[T any] struct {
 	val T
 	next *node[T]
 	prev *node[T]
 }
 
-type List[T comparable] struct {
+type List[T any] struct {
 	front *node[T]
 	back *node[T]
 	size int
+	comparator comparators.Comparator[T]
 	mu sync.Mutex
 }
 
 // Returns a new empty List.
-func NewEmpty[T comparable]() *List[T] {
-	return &List[T]{}
+func NewEmpty[T any](comparator comparators.Comparator[T]) *List[T] {
+	return &List[T]{comparator: comparator}
 }
 
 // Returns a new List initialized with a slice.
-func NewFromSlice[T comparable](slice []T) *List[T] {
-	l := List[T]{}
+func NewFromSlice[T any](slice []T, comparator comparators.Comparator[T]) *List[T] {
+	l := List[T]{comparator: comparator}
 	for _, item := range slice {
 		l.InsertBack(item)
 	}
@@ -159,7 +162,7 @@ func (l *List[T]) Get(index int) (T, error) {
 func (l *List[T]) Copy() *List[T] {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	newList := &List[T]{}
+	newList := &List[T]{comparator: l.comparator}
 	cursor := l.front
 	for i := 0; i < l.size; i++ {
 		newList.insertBack(cursor.val)
@@ -175,7 +178,7 @@ func (l *List[T]) Find(item T) int {
 	defer l.mu.Unlock()
 	cursor := l.front
 	for i := 0; i < l.size; i++ {
-		if cursor.val == item {
+		if l.comparator(cursor.val, item) == 0 {
 			return i
 		}
 		cursor = cursor.next

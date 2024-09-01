@@ -111,7 +111,10 @@ func (stack *Stack[T]) Copy() *Stack[T] {
 	defer stack.mutex.Unlock()
 	copiedSlice := make([]T, len(stack.items))
 	copy(copiedSlice, stack.items)
-	return &Stack[T]{items: copiedSlice}
+	return &Stack[T]{
+		items: copiedSlice,
+		comparator: stack.comparator,
+	}
 }
 
 // Returns the string representation of the Stack.
