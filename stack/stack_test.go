@@ -4,11 +4,12 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/davidpogosian/ds/comparators"
 	"github.com/davidpogosian/ds/testutils"
 )
 
 func TestNewEmpty(t *testing.T) {
-	s := NewEmpty[int]()
+	s := NewEmpty[int](comparators.ComparatorInt)
 	testutils.Assert(t, "s.Size()", 0, s.Size())
 	testutils.Assert(t, "s.String()", "[]", s.String())
 }
@@ -16,7 +17,7 @@ func TestNewEmpty(t *testing.T) {
 func TestNewFromSlice(t *testing.T) {
 	t.Run("InitializedSlice", func(t *testing.T) {
 		slice := []int{1, 2, 3}
-		s := NewFromSlice(slice)
+		s := NewFromSlice(slice, comparators.ComparatorInt)
 		err := testutils.CompareSlices(slice, s.ToSlice())
 		if err != nil {
 			t.Fatal(err)
@@ -25,7 +26,7 @@ func TestNewFromSlice(t *testing.T) {
 
 	t.Run("NilSlice", func(t *testing.T) {
 		var slice []float64
-		s := NewFromSlice(slice)
+		s := NewFromSlice(slice, comparators.ComparatorFloat64)
 		testutils.Assert(t, "s.Size()", 0, s.Size())
 		testutils.Assert(t, "s.String()", "[]", s.String())
 	})
@@ -33,7 +34,7 @@ func TestNewFromSlice(t *testing.T) {
 	t.Run("ModifySlice", func(t *testing.T) {
 		originalSlice := []int{1, 2, 3}
 		slice := []int{1, 2, 3}
-		s := NewFromSlice(slice)
+		s := NewFromSlice(slice, comparators.ComparatorInt)
 		slice[2] = 99
 		err := testutils.CompareSlices(originalSlice, s.ToSlice())
 		if err != nil {
@@ -45,7 +46,7 @@ func TestNewFromSlice(t *testing.T) {
 func TestPop(t *testing.T) {
 	t.Run("Sequential", func(t *testing.T) {
 		t.Run("Empty", func(t *testing.T) {
-			s := NewEmpty[int]()
+			s := NewEmpty[int](comparators.ComparatorInt)
 			_, err := s.Pop()
 			if err == nil {
 				t.Fatal("Popped from empty stack")
@@ -53,7 +54,7 @@ func TestPop(t *testing.T) {
 		})
 
 		t.Run("NotEmpty", func(t *testing.T) {
-			s := NewEmpty[int]()
+			s := NewEmpty[int](comparators.ComparatorInt)
 			s.Push(1)
 			one, err := s.Pop()
 			if err != nil {
@@ -65,7 +66,7 @@ func TestPop(t *testing.T) {
 	})
 
 	t.Run("Concurrent", func(t *testing.T) {
-		s := NewEmpty[int]()
+		s := NewEmpty[int](comparators.ComparatorInt)
 		for i := 0; i < 1000; i++ {
 			s.Push(i)
 		}
@@ -98,7 +99,7 @@ func TestPop(t *testing.T) {
 func TestPush(t *testing.T) {
 	t.Run("Sequential", func(t *testing.T) {
 		t.Run("Empty", func(t *testing.T) {
-			s := NewEmpty[int]()
+			s := NewEmpty[int](comparators.ComparatorInt)
 			s.Push(1)
 			err := testutils.CompareSlices([]int{1}, s.ToSlice())
 			if err != nil {
@@ -107,7 +108,7 @@ func TestPush(t *testing.T) {
 		})
 
 		t.Run("NotEmpty", func(t *testing.T) {
-			s := NewFromSlice([]int{1, 2})
+			s := NewFromSlice([]int{1, 2}, comparators.ComparatorInt)
 			s.Push(3)
 			err := testutils.CompareSlices([]int{1, 2, 3}, s.ToSlice())
 			if err != nil {
@@ -117,7 +118,7 @@ func TestPush(t *testing.T) {
 	})
 
 	t.Run("Concurrent", func(t *testing.T) {
-		s := NewEmpty[int]()
+		s := NewEmpty[int](comparators.ComparatorInt)
 		testutils.Assert(t, "s.Size()", 0, s.Size())
 		threads := 10
 		operations := 100
@@ -138,7 +139,7 @@ func TestPush(t *testing.T) {
 
 func TestPeek(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
-		s := NewEmpty[int]()
+		s := NewEmpty[int](comparators.ComparatorInt)
 		_, err := s.Peek()
 		if err == nil {
 			t.Fatal("Peeked empty stack")
@@ -146,7 +147,7 @@ func TestPeek(t *testing.T) {
 	})
 
 	t.Run("NotEmpty", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2})
+		s := NewFromSlice([]int{1, 2}, comparators.ComparatorInt)
 		two, err := s.Peek()
 		if err != nil {
 			t.Fatal(err)
@@ -158,37 +159,37 @@ func TestPeek(t *testing.T) {
 
 func TestIsEmpty(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
-		s := NewEmpty[int]()
+		s := NewEmpty[int](comparators.ComparatorInt)
 		testutils.Assert(t, "s.IsEmpty()", true, s.IsEmpty())
 	})
 
 	t.Run("NotEmpty", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2, 3})
+		s := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 		testutils.Assert(t, "s.IsEmpty()", false, s.IsEmpty())
 	})
 }
 
 func TestSize(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
-		s := NewEmpty[int]()
+		s := NewEmpty[int](comparators.ComparatorInt)
 		testutils.Assert(t, "s.Size()", 0, s.Size())
 	})
 
 	t.Run("NotEmpty", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2, 3})
+		s := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 		testutils.Assert(t, "s.Size()", 3, s.Size())
 	})
 }
 
 func TestClear(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
-		s := NewEmpty[int]()
+		s := NewEmpty[int](comparators.ComparatorInt)
 		s.Clear()
 		testutils.Assert(t, "s.Size()", 0, s.Size())
 	})
 
 	t.Run("NotEmpty", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2, 3})
+		s := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 		s.Clear()
 		testutils.Assert(t, "s.Size()", 0, s.Size())
 	})
@@ -196,13 +197,13 @@ func TestClear(t *testing.T) {
 
 func TestFind(t *testing.T) {
 	t.Run("Exists", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2, 3})
+		s := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 		one := s.Find(2)
 		testutils.Assert(t, "one", 1, one)
 	})
 
 	t.Run("DoesntExist", func(t *testing.T) {
-		s := NewFromSlice([]int{1, 2, 3})
+		s := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 		negativeOne := s.Find(1099)
 		testutils.Assert(t, "negativeOne", -1, negativeOne)
 	})
@@ -211,7 +212,7 @@ func TestFind(t *testing.T) {
 func TestToSlice(t *testing.T) {
 	t.Run("Basic", func(t *testing.T) {
 		originalSlice := []int{1, 2, 3}
-		s := NewFromSlice(originalSlice)
+		s := NewFromSlice(originalSlice, comparators.ComparatorInt)
 		slice := s.ToSlice()
 		err := testutils.CompareSlices(originalSlice, slice)
 		if err != nil {
@@ -221,7 +222,7 @@ func TestToSlice(t *testing.T) {
 
 	t.Run("ModifyStack", func(t *testing.T) {
 		originalSlice := []int{1, 2, 3}
-		s := NewFromSlice(originalSlice)
+		s := NewFromSlice(originalSlice, comparators.ComparatorInt)
 		slice := s.ToSlice()
 		slice[2] = 99
 		three, err := s.Pop()
@@ -233,13 +234,13 @@ func TestToSlice(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	s1 := NewFromSlice([]int{1, 2, 3})
+	s1 := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 	s2 := s1.Copy()
 	s1.Pop()
 	testutils.Assert(t, "s2.Size()", 3, s2.Size())
 }
 
 func TestString(t *testing.T) {
-	s := NewFromSlice([]int{1, 2, 3})
+	s := NewFromSlice([]int{1, 2, 3}, comparators.ComparatorInt)
 	testutils.Assert(t, "s.String()", "[1 2 3]", s.String())
 }

@@ -3,24 +3,30 @@ package stack
 import (
 	"fmt"
 	"sync"
+
+	"github.com/davidpogosian/ds/comparators"
 )
 
-type Stack[T comparable] struct {
+type Stack[T any] struct {
 	items []T
+	comparator comparators.Comparator[T]
 	mutex sync.Mutex
 }
 
 // Creates a new empty Stack.
-func NewEmpty[T comparable]() *Stack[T] {
-	return &Stack[T]{}
+func NewEmpty[T any](comparator comparators.Comparator[T]) *Stack[T] {
+	return &Stack[T]{comparator: comparator}
 }
 
 // Creates a new Stack from a slice.
 // The slice is copied.
-func NewFromSlice[T comparable](slice []T) *Stack[T] {
+func NewFromSlice[T any](slice []T, comparator comparators.Comparator[T]) *Stack[T] {
 	copiedSlice := make([]T, len(slice))
 	copy(copiedSlice, slice)
-	return &Stack[T]{items: copiedSlice}
+	return &Stack[T]{
+		items: copiedSlice,
+		comparator: comparator,
+	}
 }
 
 // Removes and returns the top item off of the Stack.
@@ -83,7 +89,7 @@ func (stack *Stack[T]) Find(item T) int {
 	stack.mutex.Lock()
 	defer stack.mutex.Unlock()
 	for i := range stack.items {
-		if stack.items[i] == item {
+		if stack.comparator(stack.items[i], item) == 0 {
 			return i
 		}
 	}
