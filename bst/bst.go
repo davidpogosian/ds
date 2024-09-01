@@ -4,12 +4,13 @@ import (
 
 )
 
-type BSTNode[T comparable] struct {
-	val T
-	left *BSTNode[T]
-	right *BSTNode[T]
+type BSTNode[K any, V any] struct {
+	key K
+	val V
+	left *BSTNode[K, V]
+	right *BSTNode[K ,V]
 }
 
-type BST[T comparable] struct {
-	root *BSTNode[T]
+type BST[K any, V any] struct {
+	root *BSTNode[K, V]
 }
