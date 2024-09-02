@@ -12,6 +12,15 @@ func Assert[T comparable](t *testing.T, varname string, expected T, got T) {
 	}
 }
 
+func AssertSlices[T comparable](t *testing.T, sliceA []T, sliceB[]T) {
+	err := CompareSlices(sliceA, sliceB)
+	if err != nil {
+		fmt.Println("sliceA:", sliceA)
+		fmt.Println("sliceB:", sliceB)
+		t.Fatal(err)
+	}
+}
+
 func CompareSlices[T comparable](sliceA []T, sliceB []T) error {
 	if (len(sliceA) != len(sliceB)) {
 		return fmt.Errorf("SliceA and SliceB are of different lengths.")

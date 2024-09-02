@@ -86,6 +86,7 @@ func (bst *BST[K, V]) Search(key K) (V, error) {
 
 // Removes give node and returns its replacement.
 func (bst *BST[K, V]) removeHelper(n *Node[K, V]) *Node[K, V] {
+	bst.size--
 	if n.left == nil && n.right == nil {
 		return nil
 	} else if n.left == nil {
@@ -105,7 +106,6 @@ func (bst *BST[K, V]) removeHelper(n *Node[K, V]) *Node[K, V] {
 		replacement.left = n.left
 	}
 	replacementParent.right = nil
-	bst.size--
 	return replacement
 }
 
@@ -214,8 +214,8 @@ func (bst *BST[K, V]) preOrderTraversal(node *Node[K, V], slice *[]K) {
 		return
 	}
 	*slice = append(*slice, node.key)
-	bst.inOrderTraversal(node.left, slice)
-	bst.inOrderTraversal(node.right, slice)
+	bst.preOrderTraversal(node.left, slice)
+	bst.preOrderTraversal(node.right, slice)
 }
 
 // Returns a slice of the keys from the BST using pre-order traversal.
@@ -231,8 +231,8 @@ func (bst *BST[K, V]) postOrderTraversal(node *Node[K, V], slice *[]K) {
 	if node == nil {
 		return
 	}
-	bst.inOrderTraversal(node.left, slice)
-	bst.inOrderTraversal(node.right, slice)
+	bst.postOrderTraversal(node.left, slice)
+	bst.postOrderTraversal(node.right, slice)
 	*slice = append(*slice, node.key)
 }
 
@@ -247,7 +247,7 @@ func (bst *BST[K, V]) PostOrderTraversal() []K {
 
 func (bst *BST[K, V]) height(node *Node[K, V]) int {
 	if node == nil {
-		return 0
+		return -1
 	}
 	left := bst.height(node.left)
 	right := bst.height(node.right)
@@ -259,6 +259,7 @@ func (bst *BST[K, V]) height(node *Node[K, V]) int {
 }
 
 // Returns the height of the BST.
+// Returns -1 if the BST is empty.
 func (bst *BST[K, V]) Height() int {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
