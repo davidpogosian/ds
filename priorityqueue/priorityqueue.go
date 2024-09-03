@@ -60,14 +60,15 @@ func (pq *PriorityQueue[P, V]) Enqueue(p P, v V) {
 
 // Returns the value at the top of the heap.
 // If the heap is empty, an error is returned.
-func (pq *PriorityQueue[P, V]) Peek() (V, error) {
+func (pq *PriorityQueue[P, V]) Peek() (P, V, error) {
 	pq.mu.Lock()
 	defer pq.mu.Unlock()
 	if pq.size == 0 {
+		var zeroPriority P
 		var zeroValue V
-		return zeroValue, fmt.Errorf("Cannot peek an empty PriorityQueue")
+		return zeroPriority, zeroValue, fmt.Errorf("Cannot peek an empty PriorityQueue")
 	}
-	return pq.heap[0].v, nil
+	return pq.heap[0].p, pq.heap[0].v, nil
 }
 
 func (pq *PriorityQueue[P, V]) heapifyDown(index int) {
@@ -100,19 +101,21 @@ func (pq *PriorityQueue[P, V]) heapifyDown(index int) {
 
 // Removes and returns the value at the top of the heap.
 // If the heap is empty, an error is returned.
-func (pq *PriorityQueue[P, V]) ExtractTop() (V, error) {
+func (pq *PriorityQueue[P, V]) ExtractTop() (P, V, error) {
 	pq.mu.Lock()
 	defer pq.mu.Unlock()
 	if pq.size == 0 {
+		var zeroPriority P
 		var zeroValue V
-		return zeroValue, fmt.Errorf("Cannot extract top on an empty PriorityQueue")
+		return zeroPriority, zeroValue, fmt.Errorf("Cannot extract top on an empty PriorityQueue")
 	}
-	top := pq.heap[0].v
+	p := pq.heap[0].p
+	v := pq.heap[0].v
 	pq.heap[0] = pq.heap[pq.size - 1]
 	pq.size--
 	pq.heap = pq.heap[:pq.size]
 	pq.heapifyDown(0)
-	return top, nil
+	return p, v, nil
 }
 
 // Removes all items from the PriorityQueue.
