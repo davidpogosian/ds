@@ -19,7 +19,7 @@ This library provides robust, thread-safe implementations of commonly used data 
 
 ## Documentation
 
-[https://pkg.go.dev/github.com/davidpogosian/ds]
+The full documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/davidpogosian/ds)
 
 ## Installation
 
@@ -57,4 +57,4 @@ func main() {
 
 ## Licence
 
-This project is licensed under the MIT License - see the [LICENSE] file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
