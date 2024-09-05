@@ -322,7 +322,8 @@ func (bst *BST[K, V]) Clear() {
     bst.size = 0
 }
 
-// originalAndCopy represents a node and its parent.
+// originalAndCopy represents a node and its corresponding node from
+// a different BST (for copying).
 type originalAndCopy[K, V any] struct {
 	original  *Node[K, V]
 	copy *Node[K, V]
