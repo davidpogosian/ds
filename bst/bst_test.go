@@ -239,17 +239,34 @@ func TestClear(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	bst := NewEmpty[int, string](comparators.ComparatorInt)
-	bst.Insert(1, "hi")
-	copy := bst.Copy()
-	_, err := bst.Remove(1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	testutils.Assert(t, "copy.Size()", 1, copy.Size())
-	hi, err := copy.Search(1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	testutils.Assert(t, "hi", "hi", hi)
+	t.Run("Relation", func(t *testing.T) {
+		bst := NewEmpty[int, string](comparators.ComparatorInt)
+		bst.Insert(1, "hi")
+		copy := bst.Copy()
+		_, err := bst.Remove(1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		testutils.Assert(t, "copy.Size()", 1, copy.Size())
+		hi, err := copy.Search(1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		testutils.Assert(t, "hi", "hi", hi)
+	})
+
+	t.Run("Large", func(t *testing.T) {
+		bst := NewEmpty[int, string](comparators.ComparatorInt)
+		bst.Insert(10, "")
+		bst.Insert(8, "")
+		bst.Insert(12, "")
+		bst.Insert(13, "")
+		bst.Insert(11, "")
+		bst.Insert(6, "")
+		bst.Insert(7, "")
+		testutils.AssertSlices(t, bst.PreOrderTraversal(), []int{10, 8, 6, 7, 12, 11, 13})
+		copy := bst.Copy()
+		bst.Clear()
+		testutils.AssertSlices(t, copy.PreOrderTraversal(), []int{10, 8, 6, 7, 12, 11, 13})
+	})
 }

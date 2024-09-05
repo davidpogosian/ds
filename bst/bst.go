@@ -39,6 +39,7 @@ func NewEmpty[K, V any](comparator comparators.Comparator[K]) *BST[K, V] {
 }
 
 // Insert inserts a new node into the BST with the provided key and value.
+// Duplicate keys are ok.
 func (bst *BST[K, V]) Insert(key K, value V) {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -204,78 +205,82 @@ func (bst *BST[K, V]) FindMax() (K, error) {
 	return cursor.key, nil
 }
 
-// inOrderTraversal adds keys to the provided slice in an
-// in-order fashion.
-func (bst *BST[K, V]) inOrderTraversal(node *Node[K, V], slice *[]K) {
-	if node == nil {
-		return
-	}
-	bst.inOrderTraversal(node.left, slice)
-	*slice = append(*slice, node.key)
-	bst.inOrderTraversal(node.right, slice)
-}
-
 // InOrderTraversal returns a slice of the keys from the BST using in-order traversal.
 func (bst *BST[K, V]) InOrderTraversal() []K {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
-	slice := []K{}
-	bst.inOrderTraversal(bst.root, &slice)
-	return slice
-}
-
-// preOrderTraversal adds keys to the provided slice
-// in a pre-order fashion.
-func (bst *BST[K, V]) preOrderTraversal(node *Node[K, V], slice *[]K) {
-	if node == nil {
-		return
+	var slice []K
+	stack := []*Node[K, V]{}
+	current := bst.root
+	for current != nil || len(stack) > 0 {
+		for current != nil {
+			stack = append(stack, current)
+			current = current.left
+		}
+		current = stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		slice = append(slice, current.key)
+		current = current.right
 	}
-	*slice = append(*slice, node.key)
-	bst.preOrderTraversal(node.left, slice)
-	bst.preOrderTraversal(node.right, slice)
+	return slice
 }
 
 // PreOrderTraversal returns a slice of the keys from the BST using pre-order traversal.
 func (bst *BST[K, V]) PreOrderTraversal() []K {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
-	slice := []K{}
-	bst.preOrderTraversal(bst.root, &slice)
-	return slice
-}
-
-// postOrderTraversal adds keys to the provided slice
-// in a post-order fashion.
-func (bst *BST[K, V]) postOrderTraversal(node *Node[K, V], slice *[]K) {
-	if node == nil {
-		return
+	var slice []K
+	if bst.root == nil {
+		return slice
 	}
-	bst.postOrderTraversal(node.left, slice)
-	bst.postOrderTraversal(node.right, slice)
-	*slice = append(*slice, node.key)
+	stack := []*Node[K, V]{bst.root}
+	for len(stack) > 0 {
+		node := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		slice = append(slice, node.key)
+		if node.right != nil {
+			stack = append(stack, node.right)
+		}
+		if node.left != nil {
+			stack = append(stack, node.left)
+		}
+	}
+	return slice
 }
 
 // PostOrderTraversal returns a slice of the keys from the BST using post-order traversal.
 func (bst *BST[K, V]) PostOrderTraversal() []K {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
-	slice := []K{}
-	bst.postOrderTraversal(bst.root, &slice)
+	var slice []K
+	if bst.root == nil {
+		return slice
+	}
+	s1 := []*Node[K, V]{bst.root}
+	s2 := []*Node[K, V]{}
+	for len(s1) > 0 {
+		node := s1[len(s1)-1]
+		s1 = s1[:len(s1)-1]
+		s2 = append(s2, node)
+		if node.left != nil {
+			s1 = append(s1, node.left)
+		}
+		if node.right != nil {
+			s1 = append(s1, node.right)
+		}
+	}
+	for len(s2) > 0 {
+		node := s2[len(s2)-1]
+		s2 = s2[:len(s2)-1]
+		slice = append(slice, node.key)
+	}
 	return slice
 }
 
-// height returns the height of the given node in the BST.
-func (bst *BST[K, V]) height(node *Node[K, V]) int {
-	if node == nil {
-		return -1
-	}
-	left := bst.height(node.left)
-	right := bst.height(node.right)
-	if left > right {
-		return left + 1
-	} else {
-		return right + 1
-	}
+// nodeLevel represents a node and its level in the BST during BFS traversal.
+type nodeLevel[K, V any] struct {
+	node  *Node[K, V]
+	level int
 }
 
 // Height returns the height of the BST.
@@ -283,7 +288,30 @@ func (bst *BST[K, V]) height(node *Node[K, V]) int {
 func (bst *BST[K, V]) Height() int {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
-	return bst.height(bst.root)
+	if bst.root == nil {
+		return -1
+	}
+	queue := []nodeLevel[K, V]{}
+	queue = append(queue, nodeLevel[K, V]{node: bst.root, level: 0})
+	height := 0
+	for len(queue) > 0 {
+		front := queue[0]
+		queue = queue[1:]
+		height = front.level
+		if front.node.left != nil {
+			queue = append(queue, nodeLevel[K, V]{
+				node: front.node.left,
+				level: front.level + 1,
+			})
+		}
+		if front.node.right != nil {
+			queue = append(queue, nodeLevel[K, V]{
+				node: front.node.right,
+				level: front.level + 1,
+			})
+		}
+	}
+	return height
 }
 
 // Clear removes all nodes from the BST.
@@ -294,25 +322,62 @@ func (bst *BST[K, V]) Clear() {
     bst.size = 0
 }
 
+// originalAndCopy represents a node and its parent.
+type originalAndCopy[K, V any] struct {
+	original  *Node[K, V]
+	copy *Node[K, V]
+}
+
 // Copy returns a pointer to a copy of the BST.
 func (bst *BST[K, V]) Copy() *BST[K, V] {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
-	var copyNode func(node *Node[K, V]) *Node[K, V]
-	copyNode = func(node *Node[K, V]) *Node[K, V] {
+	if bst.root == nil {
+		return &BST[K, V]{
+			comparator: bst.comparator,
+		}
+	}
+	copyNode := func(node *Node[K, V]) *Node[K, V] {
 		if node == nil {
 			return nil
 		}
 		return &Node[K, V]{
 			key:   node.key,
 			val:   node.val,
-			left:  copyNode(node.left),
-			right: copyNode(node.right),
+			left:  nil,
+			right: nil,
+		}
+	}
+	copiedRoot := copyNode(bst.root)
+	var queue []originalAndCopy[K, V]
+	queue = append(queue, originalAndCopy[K, V]{
+		original: bst.root,
+		copy: copiedRoot,
+	})
+	for len(queue) > 0 {
+		original := queue[0].original
+		copy := queue[0].copy
+		queue = queue[1:]
+		if original.left != nil {
+			copyLeftChild := copyNode(original.left)
+			copy.left = copyLeftChild
+			queue = append(queue, originalAndCopy[K, V]{
+				original: original.left,
+				copy: copyLeftChild,
+			})
+		}
+		if original.right != nil {
+			copyRightChild := copyNode(original.right)
+			copy.right = copyRightChild
+			queue = append(queue, originalAndCopy[K, V]{
+				original: original.right,
+				copy: copyRightChild,
+			})
 		}
 	}
 	return &BST[K, V]{
-		root: copyNode(bst.root),
-		size: bst.size,
+		root:       copiedRoot,
+		size:       bst.size,
 		comparator: bst.comparator,
 	}
 }
