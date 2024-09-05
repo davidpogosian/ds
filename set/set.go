@@ -1,3 +1,4 @@
+// Package set provides a thread-safe, generic set implementation.
 package set
 
 import (
@@ -6,18 +7,22 @@ import (
 	"sync"
 )
 
+// Set struct represents a set.
+// Important: Set can only be used with types that have the comparable constraint.
+// Set stores items in a field of type map[T comparable]bool.
+// Set also has a field to keep track of its size, as well as a mutex for thread-safety.
 type Set[T comparable] struct {
 	items map[T]bool
 	size int
 	mu sync.Mutex
 }
 
-// Returns a pointer to a new empty Set.
+// NewEmpty returns a pointer to a new empty Set.
 func NewEmpty[T comparable]() *Set[T] {
 	return &Set[T]{items: make(map[T]bool)}
 }
 
-// Returns a pointer to a new Set initialized with a slice.
+// NewFromSlice returns a pointer to a new Set initialized with a slice.
 func NewFromSlice[T comparable](slice []T) *Set[T] {
 	s := Set[T]{items: make(map[T]bool)}
 	for i := 0; i < len(slice); i++ {
@@ -26,7 +31,7 @@ func NewFromSlice[T comparable](slice []T) *Set[T] {
 	return &s
 }
 
-// Adds an item to the Set.
+// Add adds an item to the Set.
 // If the item is already in the Set, nothing happens.
 func (s *Set[T]) Add(newItem T) {
 	s.mu.Lock()
@@ -38,7 +43,7 @@ func (s *Set[T]) Add(newItem T) {
 	}
 }
 
-// Removes an item from the Set.
+// Remove removes an item from the Set.
 // If the item is not in the Set, nothing happens.
 func (s *Set[T]) Remove(item T) {
 	s.mu.Lock()
@@ -50,7 +55,7 @@ func (s *Set[T]) Remove(item T) {
 	}
 }
 
-// Returns the string representation of the Set.
+// String returns the string representation of the Set.
 func (s *Set[T]) String() string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -64,7 +69,7 @@ func (s *Set[T]) String() string {
 	return str + "]"
 }
 
-// Returns a copy of the Set.
+// Copy returns a pointer to a copy of the Set.
 func (s *Set[T]) Copy() *Set[T] {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -75,7 +80,7 @@ func (s *Set[T]) Copy() *Set[T] {
 	return copy
 }
 
-// Returns a bool indicating whether or not the item is in the Set.
+// Contains returns a bool indicating whether or not the item is in the Set.
 func (s *Set[T]) Contains(item T) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -83,21 +88,21 @@ func (s *Set[T]) Contains(item T) bool {
 	return exists
 }
 
-// Returns the number of items in the Set as an int.
+// Size returns the number of items in the Set as an int.
 func (s *Set[T]) Size() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.size
 }
 
-// Returns a bool indicating the emptiness of the Set.
+// IsEmpty returns a bool indicating the emptiness of the Set.
 func (s *Set[T]) IsEmpty() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.size == 0
 }
 
-// Removes all items from the Set.
+// Clear removes all items from the Set.
 func (s *Set[T]) Clear() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -105,7 +110,7 @@ func (s *Set[T]) Clear() {
 	s.size = 0
 }
 
-// Returns the Set as a slice.
+// ToSlice returns the Set as a slice.
 func (s *Set[T]) ToSlice() []T {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -118,7 +123,8 @@ func (s *Set[T]) ToSlice() []T {
 	return slice
 }
 
-// Returns a new Set that is the union of this Set and the input Set.
+// Union returns a pointer to a new Set that is the union of this Set
+// and the Set provided as an argument.
 func (s1 *Set[T]) Union(s2 *Set[T]) *Set[T] {
 	s1.mu.Lock()
 	defer s1.mu.Unlock()
@@ -134,7 +140,8 @@ func (s1 *Set[T]) Union(s2 *Set[T]) *Set[T] {
 	return union
 }
 
-// Returns a new Set that is the intersection of this Set and the input Set.
+// Intersection returns a pointer to a new Set that is the intersection of
+// this Set and the Set provided as an argument.
 func (s1 *Set[T]) Intersection(s2 *Set[T]) *Set[T] {
 	s1.mu.Lock()
 	defer s1.mu.Unlock()
@@ -149,7 +156,8 @@ func (s1 *Set[T]) Intersection(s2 *Set[T]) *Set[T] {
 	return intersection
 }
 
-// Returns a new Set that is the difference between this Set and the input Set.
+// Difference returns a pointer to a new Set that is
+// the difference between this Set and the Set provided as an argument.
 func (s1 *Set[T]) Difference(s2 *Set[T]) *Set[T] {
 	s1.mu.Lock()
 	defer s1.mu.Unlock()
@@ -164,7 +172,8 @@ func (s1 *Set[T]) Difference(s2 *Set[T]) *Set[T] {
 	return difference
 }
 
-// Returns a bool that indicates if the this Set is a subset of the input Set.
+// IsSubset returns a bool that indicates if this Set is a
+// subset of the Set provided as an argument.
 func (s1 *Set[T]) IsSubset(s2 *Set[T]) bool {
 	s1.mu.Lock()
 	defer s1.mu.Unlock()
@@ -178,7 +187,8 @@ func (s1 *Set[T]) IsSubset(s2 *Set[T]) bool {
 	return true
 }
 
-// Returns a bool that indicates if the this Set is a superset of the input Set.
+// IsSuperset returns a bool that indicates if this Set is a
+// superset of the Set provided as an argument.
 func (s1 *Set[T]) IsSuperset(s2 *Set[T]) bool {
 	s1.mu.Lock()
 	defer s1.mu.Unlock()
@@ -192,7 +202,8 @@ func (s1 *Set[T]) IsSuperset(s2 *Set[T]) bool {
 	return true
 }
 
-// Returns a bool that indicates if the this Set is equal to the input Set.
+// Equals returns a bool that indicates if this Set is
+// equal to the Set provided as an argument.
 func (s1 *Set[T]) Equals(s2 *Set[T]) bool {
 	s1.mu.Lock()
 	defer s1.mu.Unlock()

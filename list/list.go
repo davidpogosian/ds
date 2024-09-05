@@ -1,3 +1,4 @@
+// Package list provides a thread-safe, generic doubly-linked list implementation.
 package list
 
 import (
@@ -7,12 +8,19 @@ import (
 	"github.com/davidpogosian/ds/comparators"
 )
 
+// node struct represents a single item in the List.
+// It has a field for a value, and pointers to the previous and the next node.
 type node[T any] struct {
 	val T
 	next *node[T]
 	prev *node[T]
 }
 
+// List struct represents a double-linked list.
+// It has pointers to the front and the back of the list.
+// A field to keep track of the size of the list.
+// A comparator function to compare elements.
+// And a mutex for thread-safety.
 type List[T any] struct {
 	front *node[T]
 	back *node[T]
@@ -21,12 +29,20 @@ type List[T any] struct {
 	mu sync.Mutex
 }
 
-// Returns a new empty List.
+// NewEmpty returns a pointer to a new empty List.
+// NewEmpty requires a comparator function to compare elements.
+// For built-in types, the comparators package provides ready-made comparators
+// (e.g., comparators.CompareInt for int).
+// Custom types will require a user-defined comparator.
 func NewEmpty[T any](comparator comparators.Comparator[T]) *List[T] {
 	return &List[T]{comparator: comparator}
 }
 
-// Returns a new List initialized with a slice.
+// NewFromSlice returns a pointer to a new List initialized with a slice.
+// NewFromSlice requires a comparator function to compare elements.
+// For built-in types, the comparators package provides ready-made comparators
+// (e.g., comparators.CompareInt for int).
+// Custom types will require a user-defined comparator.
 func NewFromSlice[T any](slice []T, comparator comparators.Comparator[T]) *List[T] {
 	l := List[T]{comparator: comparator}
 	for _, item := range slice {
@@ -35,6 +51,7 @@ func NewFromSlice[T any](slice []T, comparator comparators.Comparator[T]) *List[
 	return &l
 }
 
+// insertFront inserts new item at the front of the List.
 func (l *List[T]) insertFront(newItem T) {
 	n := &node[T]{val: newItem}
 	if l.size == 0 {
@@ -48,13 +65,14 @@ func (l *List[T]) insertFront(newItem T) {
 	l.size++
 }
 
-// Inserts new item at the front of the List.
+// InsertFront inserts new item at the front of the List.
 func (l *List[T]) InsertFront(newItem T) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.insertFront(newItem)
 }
 
+// insertBack inserts new item at the back of the list.
 func (l *List[T]) insertBack(newItem T) {
 	n := &node[T]{val: newItem}
 	if l.size == 0 {
@@ -68,15 +86,15 @@ func (l *List[T]) insertBack(newItem T) {
 	l.size++
 }
 
-// Inserts new item at the back of the List.
+// InsertBack inserts new item at the back of the List.
 func (l *List[T]) InsertBack(newItem T) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.insertBack(newItem)
 }
 
-// Inserts new item at the specified position.
-// If position is invalid, an error is returned.
+// InsertPosition inserts new item at the specified position.
+// If the position is invalid (aka if position < 0 || position > List.size), an error is returned.
 func (l *List[T]) InsertPosition(newItem T, position int) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -102,7 +120,7 @@ func (l *List[T]) InsertPosition(newItem T, position int) error {
 	return nil
 }
 
-// Returns the string representation of the List.
+// String returns the string representation of the List.
 func (l *List[T]) String() string {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -119,21 +137,21 @@ func (l *List[T]) String() string {
 	return s
 }
 
-// Returns the number of items in the List.
+// Size returns the number of items in the List.
 func (l *List[T]) Size() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.size
 }
 
-// Returns a bool indicating whether or not the List is empty.
+// IsEmpty returns a bool indicating whether or not the List is empty.
 func (l *List[T]) IsEmpty() bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.size == 0
 }
 
-// Removes all items from the List.
+// Clear removes all items from the List.
 func (l *List[T]) Clear() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -142,8 +160,8 @@ func (l *List[T]) Clear() {
 	l.size = 0
 }
 
-// Returns an item from the specified index of the List.
-// If the index is invalid, an error is returned.
+// Get returns an item from the specified index of the List.
+// If the index is invalid (aka index < 0 || index >= List.size), an error is returned.
 func (l *List[T]) Get(index int) (T, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -158,7 +176,7 @@ func (l *List[T]) Get(index int) (T, error) {
 	return cursor.val, nil
 }
 
-// Returns a copy of the List.
+// Copy returns a pointer to a copy of the List.
 func (l *List[T]) Copy() *List[T] {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -171,7 +189,7 @@ func (l *List[T]) Copy() *List[T] {
 	return newList
 }
 
-// Returns the index of the first occurence of given item in the List.
+// Find returns the index of the first occurence of the given item in the List.
 // If the item is not found in the List, -1 is returned.
 func (l *List[T]) Find(item T) int {
 	l.mu.Lock()
@@ -186,6 +204,8 @@ func (l *List[T]) Find(item T) int {
 	return -1
 }
 
+// removeFront removes the item at the front of the List.
+// If the List is empty, an error is returned.
 func (l *List[T]) removeFront() (T, error) {
 	if l.size == 0 {
 		var zeroValue T
@@ -203,7 +223,7 @@ func (l *List[T]) removeFront() (T, error) {
 	return value, nil
 }
 
-// Removes the item at the front of the List.
+// RemoveFront removes the item at the front of the List.
 // If the List is empty, an error is returned.
 func (l *List[T]) RemoveFront() (T, error) {
 	l.mu.Lock()
@@ -211,6 +231,8 @@ func (l *List[T]) RemoveFront() (T, error) {
 	return l.removeFront()
 }
 
+// removeBack removes the item at the back of the List.
+// If the List is empty, an error is returned.
 func (l *List[T]) removeBack() (T, error) {
 	if l.size == 0 {
 		var zeroValue T
@@ -228,7 +250,7 @@ func (l *List[T]) removeBack() (T, error) {
 	return value, nil
 }
 
-// Removes the item at the back of the List.
+// RemoveBack removes the item at the back of the List.
 // If the List is empty, an error is returned.
 func (l *List[T]) RemoveBack() (T, error) {
 	l.mu.Lock()
@@ -236,8 +258,8 @@ func (l *List[T]) RemoveBack() (T, error) {
 	return l.removeBack()
 }
 
-// Removes the item at given index from the List.
-// If the index is invalid, an error is returned.
+// RemovePosition removes the item at given index from the List.
+// If the index is invalid (aka index < 0 || index >= List.size), an error is returned.
 func (l *List[T]) RemovePosition(index int) (T, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -263,7 +285,7 @@ func (l *List[T]) RemovePosition(index int) (T, error) {
 	return value, nil
 }
 
-// Returns the List as a slice.
+// ToSlice returns the List as a slice.
 func (l *List[T]) ToSlice() []T {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -276,7 +298,7 @@ func (l *List[T]) ToSlice() []T {
 	return s
 }
 
-// Reverses the order of the items in the List.
+// Reverse reverses the order of the items in the List.
 func (l *List[T]) Reverse() {
 	l.mu.Lock()
 	defer l.mu.Unlock()

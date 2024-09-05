@@ -1,4 +1,4 @@
-package priorityqueue
+package priority_queue
 
 import (
 	"testing"
@@ -135,4 +135,13 @@ func TestClear(t *testing.T) {
 	pq.Enqueue(3, "high")
 	pq.Clear()
 	testutils.Assert(t, "pq.Size()", 0, pq.Size())
+}
+
+func TestCopy(t *testing.T) {
+	pq1 := NewEmpty[int, string](comparators.ComparatorInt, true)
+	pq1.Enqueue(2, "Stwing")
+	pq2 := pq1.Copy()
+	testutils.Assert(t, "pq2.Size()", 1, pq2.Size())
+	pq1.Enqueue(3, "Awso Stwing")
+	testutils.Assert(t, "pq2.Size()", 1, pq2.Size())
 }

@@ -10,12 +10,12 @@ This library provides robust, thread-safe implementations of commonly used data 
 
 ## What's in the Box?
 
-- *Stack*
-- *Queue*
-- *List*
-- *Set*
-- *Binary Search Tree*
-- *Priority Queue*
+- **Stack**
+- **Queue**
+- **List**
+- **Set**
+- **Binary Search Tree**
+- **Priority Queue**
 
 ## Documentation
 

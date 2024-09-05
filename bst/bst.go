@@ -1,3 +1,4 @@
+// Package bst provides a thread-safe, generic binary search tree implementation.
 package bst
 
 import (
@@ -7,6 +8,10 @@ import (
 	"github.com/davidpogosian/ds/comparators"
 )
 
+// Node struct represents a single item in the BST.
+// It has fields for a key and a value. The key is used
+// to determine where in the BST this node belongs.
+// It also have pointers to the left and right nodes.
 type Node[K any, V any] struct {
 	key K
 	val V
@@ -14,6 +19,9 @@ type Node[K any, V any] struct {
 	right *Node[K ,V]
 }
 
+// BST struct represents a binary search tree.
+// It has a pointer to the root node, a comparator function for comparing keys,
+// a field to keep track of its size, and a mutex for thread-safety.
 type BST[K any, V any] struct {
 	root *Node[K, V]
 	comparator comparators.Comparator[K]
@@ -21,12 +29,16 @@ type BST[K any, V any] struct {
 	mu sync.Mutex
 }
 
-// Returns a new empty BST.
+// NewEmpty returns a pointer to a new empty BST.
+// NewEmpty requires a comparator function to compare elements.
+// For built-in types, the comparators package provides ready-made comparators
+// (e.g., comparators.CompareInt for int).
+// Custom types will require a user-defined comparator.
 func NewEmpty[K, V any](comparator comparators.Comparator[K]) *BST[K, V] {
 	return &BST[K, V]{comparator: comparator}
 }
 
-// Inserts a new item into the BST.
+// Insert inserts a new node into the BST with the provided key and value.
 func (bst *BST[K, V]) Insert(key K, value V) {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -62,8 +74,8 @@ func (bst *BST[K, V]) Insert(key K, value V) {
 	bst.size++
 }
 
-// Returns the value of the first node with the inputted key.
-// If no item with the inputted key exists, an error is returned.
+// Search returns the value of the first node with the provided key.
+// If no item with the provided key exists, an error is returned.
 func (bst *BST[K, V]) Search(key K) (V, error) {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -84,7 +96,8 @@ func (bst *BST[K, V]) Search(key K) (V, error) {
 	return zeroValue, fmt.Errorf("Key '%v' is not in the BST.", key)
 }
 
-// Removes give node and returns its replacement.
+// removeHelper removes a given node and returns a pointer to
+// a node that will serve as its replacement.
 func (bst *BST[K, V]) removeHelper(n *Node[K, V]) *Node[K, V] {
 	bst.size--
 	if n.left == nil && n.right == nil {
@@ -109,8 +122,8 @@ func (bst *BST[K, V]) removeHelper(n *Node[K, V]) *Node[K, V] {
 	return replacement
 }
 
-// Removes the first node with the inputted key and returns its value.
-// If no node has the inputted key, an error is returned.
+// Remove removes the first node with the provided key and returns its value.
+// If no node has the provided key, an error is returned.
 func (bst *BST[K, V]) Remove(key K) (V, error) {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -152,14 +165,14 @@ func (bst *BST[K, V]) Remove(key K) (V, error) {
 	return zeroValue, fmt.Errorf("Key '%v' is not in the BST.", key)
 }
 
-// Returns the number of nodes in the BST.
+// Size returns the number of nodes in the BST.
 func (bst *BST[K, V]) Size() int {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
 	return bst.size
 }
 
-// Returns the minimum key in the BST.
+// FindMin returns the minimum key in the BST.
 // If the BST is empty, an error is returned.
 func (bst *BST[K, V]) FindMin() (K, error) {
 	bst.mu.Lock()
@@ -175,7 +188,7 @@ func (bst *BST[K, V]) FindMin() (K, error) {
 	return cursor.key, nil
 }
 
-// Returns the maximum key in the BST.
+// FindMax returns the maximum key in the BST.
 // If the BST is empty, an error is returned.
 func (bst *BST[K, V]) FindMax() (K, error) {
 	bst.mu.Lock()
@@ -191,6 +204,8 @@ func (bst *BST[K, V]) FindMax() (K, error) {
 	return cursor.key, nil
 }
 
+// inOrderTraversal adds keys to the provided slice in an
+// in-order fashion.
 func (bst *BST[K, V]) inOrderTraversal(node *Node[K, V], slice *[]K) {
 	if node == nil {
 		return
@@ -200,7 +215,7 @@ func (bst *BST[K, V]) inOrderTraversal(node *Node[K, V], slice *[]K) {
 	bst.inOrderTraversal(node.right, slice)
 }
 
-// Returns a slice of the keys from the BST using in-order traversal.
+// InOrderTraversal returns a slice of the keys from the BST using in-order traversal.
 func (bst *BST[K, V]) InOrderTraversal() []K {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -209,6 +224,8 @@ func (bst *BST[K, V]) InOrderTraversal() []K {
 	return slice
 }
 
+// preOrderTraversal adds keys to the provided slice
+// in a pre-order fashion.
 func (bst *BST[K, V]) preOrderTraversal(node *Node[K, V], slice *[]K) {
 	if node == nil {
 		return
@@ -218,7 +235,7 @@ func (bst *BST[K, V]) preOrderTraversal(node *Node[K, V], slice *[]K) {
 	bst.preOrderTraversal(node.right, slice)
 }
 
-// Returns a slice of the keys from the BST using pre-order traversal.
+// PreOrderTraversal returns a slice of the keys from the BST using pre-order traversal.
 func (bst *BST[K, V]) PreOrderTraversal() []K {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -227,6 +244,8 @@ func (bst *BST[K, V]) PreOrderTraversal() []K {
 	return slice
 }
 
+// postOrderTraversal adds keys to the provided slice
+// in a post-order fashion.
 func (bst *BST[K, V]) postOrderTraversal(node *Node[K, V], slice *[]K) {
 	if node == nil {
 		return
@@ -236,7 +255,7 @@ func (bst *BST[K, V]) postOrderTraversal(node *Node[K, V], slice *[]K) {
 	*slice = append(*slice, node.key)
 }
 
-// Returns a slice of the keys from the BST using post-order traversal.
+// PostOrderTraversal returns a slice of the keys from the BST using post-order traversal.
 func (bst *BST[K, V]) PostOrderTraversal() []K {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
@@ -245,6 +264,7 @@ func (bst *BST[K, V]) PostOrderTraversal() []K {
 	return slice
 }
 
+// height returns the height of the given node in the BST.
 func (bst *BST[K, V]) height(node *Node[K, V]) int {
 	if node == nil {
 		return -1
@@ -258,15 +278,15 @@ func (bst *BST[K, V]) height(node *Node[K, V]) int {
 	}
 }
 
-// Returns the height of the BST.
-// Returns -1 if the BST is empty.
+// Height returns the height of the BST.
+// It returns -1 if the BST is empty.
 func (bst *BST[K, V]) Height() int {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
 	return bst.height(bst.root)
 }
 
-// Removes all nodes from the BST.
+// Clear removes all nodes from the BST.
 func (bst *BST[K, V]) Clear() {
     bst.mu.Lock()
     defer bst.mu.Unlock()
@@ -274,7 +294,7 @@ func (bst *BST[K, V]) Clear() {
     bst.size = 0
 }
 
-// Copy returns a copy of the BST.
+// Copy returns a pointer to a copy of the BST.
 func (bst *BST[K, V]) Copy() *BST[K, V] {
 	bst.mu.Lock()
 	defer bst.mu.Unlock()
